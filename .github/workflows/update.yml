@@ -3,7 +3,7 @@ on: push
 
 jobs:
   update:
-    name: EAS Update
+    name: EAS Build APK
     runs-on: ubuntu-latest
     steps:
       - name: Check for EXPO_TOKEN
@@ -20,7 +20,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18.x
-          cache: yarn
+          cache: npm
+
+      - name: Check for package-lock.json
+        run: |
+          if [ ! -f package-lock.json ]; then
+            echo "Error: package-lock.json file is missing in the project directory."
+            exit 1
+          fi
 
       - name: Setup EAS
         uses: expo/expo-github-action@v8
@@ -29,7 +36,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
-        run: yarn install
+        run: npm install
 
       - name: Build Android APK
         run: eas build --platform android --profile preview
