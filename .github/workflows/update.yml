@@ -1,5 +1,10 @@
 name: update
-on: push
+# Add the workflow_dispatch event to allow manual triggering
+on:
+  # Disable Github Action on Push due to the limit of EAS build, now use manual trigger during end of sprint
+  # push:
+  # Optional: You can keep the push trigger if you want it to also run on push
+  workflow_dispatch:
 
 jobs:
   update:
@@ -39,4 +44,4 @@ jobs:
         run: npm install
 
       - name: Build Android APK
-        run: eas build --platform android --profile preview
+        run: eas build --platform android --profile preview --non-interactive
