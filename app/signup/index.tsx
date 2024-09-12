@@ -1,19 +1,24 @@
 //app/signup/index.tsx
 
-import React, {useState} from 'react';
-import {View, TextInput, Button, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, Button, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useRouter} from 'expo-router';
-import {Picker} from "@react-native-picker/picker";
+import { useRouter } from 'expo-router';
+import { Dropdown } from 'react-native-element-dropdown'; // Import the Dropdown component
 
 export default function SignUpForm() {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordagain, setPasswordagain] = useState<string>('');
-    const [role, setRole] = useState<string>('Driver');  // Default role
+    const [role, setRole] = useState<string>('Driver'); // Default role
     const [error, setError] = useState('');
     const router = useRouter();
+
+    const roles = [
+        { label: 'Driver', value: 'Driver' },
+        { label: 'Customer', value: 'Customer' }
+    ];
 
     const handleSignUp = async () => {
         const apiUrl = 'https://66dd802bf7bcc0bbdcde43b3.mockapi.io/user-services/signup';
@@ -47,13 +52,11 @@ export default function SignUpForm() {
 
     return (
         <View style={styles.pageContainer}>
-            {/* Header Section */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Sign Up</Text>
                 <Text style={styles.headerSubtitle}>Please sign up a new account</Text>
             </View>
 
-            {/* Form Section */}
             <View style={styles.container}>
                 <TextInput
                     style={styles.input}
@@ -81,30 +84,37 @@ export default function SignUpForm() {
                     onChangeText={setPasswordagain}
                     secureTextEntry
                 />
+
                 <Text style={styles.normalTextLeft}>Roles</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={role}
-                        onValueChange={(itemValue) => setRole(itemValue)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label="Driver" value="Driver"/>
-                        <Picker.Item label="Customer" value="Customer"/>
-                    </Picker>
+
+                {/* Dropdown for Roles */}
+                {/* Wrap Dropdown in View */}
+                <View style={styles.dropdownContainer}>
+                    <Dropdown
+                        data={roles}
+                        labelField="label"
+                        valueField="value"
+                        placeholder="Select Role"
+                        value={role}
+                        onChange={item => setRole(item.value)}
+                        style={styles.dropdown}
+                        placeholderStyle={styles.placeholderStyle}
+                        selectedTextStyle={styles.selectedTextStyle}
+                    />
                 </View>
 
                 {error ? <Text style={styles.error}>{error}</Text> : null}
+
                 <TouchableOpacity style={styles.button} onPress={handleSignUp}>
                     <Text style={styles.buttonText}>Sign Up</Text>
                 </TouchableOpacity>
-                {/* Navigation Link to Login */}
+
                 <Text style={styles.normalText}>
                     Already have an account?{' '}
                     <Text onPress={() => router.push('/login')} style={styles.linkText}>
                         Login Now
                     </Text>
                 </Text>
-
             </View>
         </View>
     );
@@ -173,19 +183,25 @@ const styles = StyleSheet.create({
         fontSize: 14,
         marginBottom: 8,
     },
-    picker: {
-        height: 50,
-        width: '100%',
-        marginBottom: 16,
-    },
-    pickerContainer: {
+    dropdownContainer: {
+        width: '100%', // Ensure full width
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 4,
+        padding: 8,
         marginBottom: 16,
+    },
+    dropdown: {
         width: '100%',
     },
-
+    placeholderStyle: {
+        color: '#ccc',
+        fontSize: 14,
+    },
+    selectedTextStyle: {
+        color: '#000',
+        fontSize: 16,
+    },
     linkText: {
         color: '#FF9500',
         fontWeight: 'bold',
