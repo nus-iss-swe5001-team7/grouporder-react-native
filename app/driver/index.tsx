@@ -1,11 +1,12 @@
-// app/(auth)/driverscreen.tsx
-import React, { useState } from 'react';
+//app/driver/index.tsx
+
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function driverscreen() {
+export default function DriverScreen() {
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Driver Screen</Text>
+            <Text style={styles.text}>Welcome to the Driver Dashboard</Text>
         </View>
     );
 }
@@ -14,12 +15,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
-        padding: 16,
+        alignItems: 'center',
         backgroundColor: '#fff',
     },
-    title: {
+    text: {
         fontSize: 24,
-        marginBottom: 16,
-        textAlign: 'center',
+        fontWeight: 'bold',
     },
 });
