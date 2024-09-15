@@ -4,16 +4,31 @@ import React, {useState} from 'react';
 import {View, TextInput, Button, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useRouter} from 'expo-router';
+import baseUrl from "@/constants/projUrl";
 
 export default function LoginScreen() {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const router = useRouter();
 
     const handleLogin = async () => {
-        // Simulate successful login
-        const apiUrl = 'https://66dd802bf7bcc0bbdcde43b3.mockapi.io/user-services/login';
+        // Regular expression for basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        // Simple validation to check if all required fields are filled
+        if (!email ||  !password ) {
+            setError("All fields are required.");
+            return;
+        }
+
+        // Validate the email format
+        if (!emailRegex.test(email)) {
+            setError("Please enter a valid email address.");
+            return;
+        }
+
+        const apiUrl = baseUrl + '/user-service/user/login';
 
         try {
             const response = await fetch(apiUrl, {
@@ -22,7 +37,7 @@ export default function LoginScreen() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    username,
+                    name: email,
                     password,
                 }),
             });
@@ -30,6 +45,14 @@ export default function LoginScreen() {
             const result = await response.json();
 
             if (response.ok) {
+                // Store the user info (userId, name, role, token) in AsyncStorage
+                await AsyncStorage.setItem('userData', JSON.stringify({
+                    userId: result.userId,
+                    name: result.name,
+                    role: result.role,
+                    token: result.token,
+                }));
+
                 // Save login flag to local storage
                 await AsyncStorage.setItem('userlogin', 'true');
                 router.replace('/driver');  // Navigate to Driver screen
@@ -53,8 +76,8 @@ export default function LoginScreen() {
                 <TextInput
                     style={styles.input}
                     placeholder="Username"
-                    value={username}
-                    onChangeText={setUsername}
+                    value={email}
+                    onChangeText={setEmail}
                 />
                 <TextInput
                     style={styles.input}
