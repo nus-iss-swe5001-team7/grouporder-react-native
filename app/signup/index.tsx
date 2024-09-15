@@ -14,7 +14,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Dropdown } from 'react-native-element-dropdown'; // Import the Dropdown component
-import baseUrl from '../../constants/projUrl'; // Import the correct config based on the environment
+import baseUrl, {projEnv} from '../../constants/projUrl'; // Import the correct config based on the environment
 
 export default function SignUpForm() {
     const [name, setName] = useState('');
@@ -64,9 +64,10 @@ export default function SignUpForm() {
                 }),
             });
 
-            const result = await response.json();
-
             if (response.ok) {
+
+                const result = await response.json();
+
                 // Store the user info (userId, name, role, token) in AsyncStorage
                 await AsyncStorage.setItem('userData', JSON.stringify({
                     userId: result.userId,
@@ -78,7 +79,15 @@ export default function SignUpForm() {
                 await AsyncStorage.setItem('userlogin', 'true');
                 router.replace('/driver');
             } else {
-                setError(result.message || 'Sign-up failed. Please try again.');
+                if (response.status === 404) {
+                    if (projEnv == "development") {
+                        setError('Invalid Mock Request, please use {"name":"demo","password": "password","email":"demo@email.com","role":"delivery"}');
+                    } else {
+                        setError(response.status +'Sign-up failed. Please try again.');
+                    }
+                } else {
+                    setError(response.status +'Sign-up failed. Please try again.');
+                }
             }
         } catch (error) {
             setError('An error occurred. Please try again later.');

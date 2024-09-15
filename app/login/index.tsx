@@ -4,7 +4,7 @@ import React, {useState} from 'react';
 import {View, TextInput, Button, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useRouter} from 'expo-router';
-import baseUrl from "@/constants/projUrl";
+import { projEnv, projUrl } from '../../constants/projUrl'; // Import both projEnv and projUrl
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
@@ -28,7 +28,7 @@ export default function LoginScreen() {
             return;
         }
 
-        const apiUrl = baseUrl + '/user-service/user/login';
+        const apiUrl = projUrl + '/user-service/user/login';
 
         try {
             const response = await fetch(apiUrl, {
@@ -42,9 +42,10 @@ export default function LoginScreen() {
                 }),
             });
 
-            const result = await response.json();
-
             if (response.ok) {
+
+                const result = await response.json();
+
                 // Store the user info (userId, name, role, token) in AsyncStorage
                 await AsyncStorage.setItem('userData', JSON.stringify({
                     userId: result.userId,
@@ -56,8 +57,23 @@ export default function LoginScreen() {
                 // Save login flag to local storage
                 await AsyncStorage.setItem('userlogin', 'true');
                 router.replace('/driver');  // Navigate to Driver screen
-            } else {
-                setError(result.message || 'Login failed. Please try again.');
+
+            }
+            else {
+                // Handle error based on HTTP status code
+                if (response.status === 401) {
+                    setError('Invalid credentials. Please try again.');
+                } else if (response.status === 404) {
+                    if (projEnv == "development"){
+                        setError('Invalid Mock Request, please use {"name":"demo@email.com","password":"password"}');
+                    } else {
+                        setError('Login endpoint not found. Please contact support or try again later.');
+                    }
+                } else if (response.status === 500) {
+                    setError('Internal server error. Please try again later.');
+                } else {
+                    setError(response.status + 'Login failed. Please try again.');
+                }
             }
         } catch (error) {
             setError('An error occurred. Please try again later.');
