@@ -4,16 +4,31 @@ import React, {useState} from 'react';
 import {View, TextInput, Button, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useRouter} from 'expo-router';
+import { projEnv, projUrl } from '../../constants/projUrl'; // Import both projEnv and projUrl
 
 export default function LoginScreen() {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const router = useRouter();
 
     const handleLogin = async () => {
-        // Simulate successful login
-        const apiUrl = 'https://66dd802bf7bcc0bbdcde43b3.mockapi.io/user-services/login';
+        // Regular expression for basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        // Simple validation to check if all required fields are filled
+        if (!email ||  !password ) {
+            setError("All fields are required.");
+            return;
+        }
+
+        // Validate the email format
+        if (!emailRegex.test(email)) {
+            setError("Please enter a valid email address.");
+            return;
+        }
+
+        const apiUrl = projUrl + '/user-service/user/login';
 
         try {
             const response = await fetch(apiUrl, {
@@ -22,19 +37,43 @@ export default function LoginScreen() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    username,
+                    name: email,
                     password,
                 }),
             });
 
-            const result = await response.json();
-
             if (response.ok) {
+
+                const result = await response.json();
+
+                // Store the user info (userId, name, role, token) in AsyncStorage
+                await AsyncStorage.setItem('userData', JSON.stringify({
+                    userId: result.userId,
+                    name: result.name,
+                    role: result.role,
+                    token: result.token,
+                }));
+
                 // Save login flag to local storage
                 await AsyncStorage.setItem('userlogin', 'true');
                 router.replace('/driver');  // Navigate to Driver screen
-            } else {
-                setError(result.message || 'Login failed. Please try again.');
+
+            }
+            else {
+                // Handle error based on HTTP status code
+                if (response.status === 401) {
+                    setError('Invalid credentials. Please try again.');
+                } else if (response.status === 404) {
+                    if (projEnv == "development"){
+                        setError('Invalid Mock Request, please use {"name":"demo@email.com","password":"password"}');
+                    } else {
+                        setError('Login endpoint not found. Please contact support or try again later.');
+                    }
+                } else if (response.status === 500) {
+                    setError('Internal server error. Please try again later.');
+                } else {
+                    setError(response.status + 'Login failed. Please try again.');
+                }
             }
         } catch (error) {
             setError('An error occurred. Please try again later.');
@@ -52,9 +91,9 @@ export default function LoginScreen() {
             <View style={styles.container}>
                 <TextInput
                     style={styles.input}
-                    placeholder="Username"
-                    value={username}
-                    onChangeText={setUsername}
+                    placeholder="User Email"
+                    value={email}
+                    onChangeText={setEmail}
                 />
                 <TextInput
                     style={styles.input}
