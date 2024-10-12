@@ -1,23 +1,75 @@
 // app/driver/index.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Modal, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Modal, Pressable, Image  } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import Header from "@/components/Header"; // Import Header component
 import Ionicons from '@expo/vector-icons/Ionicons'; // Import icons for filter button
 
 const orders = [
-    { id: '1', restaurant: 'Restaurant A', status: 'READY_FOR_DELIVERY', location: 'North', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
-    { id: '2', restaurant: 'Restaurant B', status: 'READY_FOR_DELIVERY', location: 'South', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
-    { id: '3', restaurant: 'Restaurant C', status: 'READY_FOR_DELIVERY', location: 'East', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
-    { id: '4', restaurant: 'Restaurant D', status: 'READY_FOR_DELIVERY', location: 'West', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
-    { id: '5', restaurant: 'Restaurant E', status: 'READY_FOR_DELIVERY', location: 'Central', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
-    { id: '6', restaurant: 'Restaurant F', status: 'READY_FOR_DELIVERY', location: 'South', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
-    { id: '7', restaurant: 'Restaurant G', status: 'READY_FOR_DELIVERY', location: 'North', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
-    { id: '8', restaurant: 'Restaurant H', status: 'READY_FOR_DELIVERY', location: 'West', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
-    { id: '9', restaurant: 'Restaurant I', status: 'READY_FOR_DELIVERY', location: 'South', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
-    // ... Add more orders
+    {
+        groupFoodOrderId: "364c547b-2191-49a1-8f7c-12e83b343564",
+        deliveryTime: null,
+        orderTime: "2024-10-09T17:02:49.631+00:00",
+        orderStatus: "READY_FOR_DELIVERY",
+        restaurantName: "Dumpling House",
+        restaurantId: "5b75eb9f-fb89-45a2-94da-afbe6c21ff9c",
+        location: "South",
+        rating: "3.0",
+        imgUrl: "https://images.pexels.com/photos/7363691/pexels-photo-7363691.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+        deliveryLocation: "Central"
+    },
+    {
+        groupFoodOrderId: "f82993c9-de57-428b-a44c-161716f275f7",
+        deliveryTime: null,
+        orderTime: "2024-10-12T18:53:54.413+00:00",
+        orderStatus: "READY_FOR_DELIVERY",
+        restaurantName: "West Tempura House",
+        restaurantId: "6cb8f841-6b19-43a2-9a5f-8e8b9e9e375e",
+        location: "West",
+        rating: "4.0",
+        imgUrl: "https://images.pexels.com/photos/2098131/pexels-photo-2098131.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+        deliveryLocation: "West"
+    },
+    {
+        groupFoodOrderId: "8773eac3-e5d2-48b6-adc0-eb7b7ac8b421",
+        deliveryTime: null,
+        orderTime: "2024-10-12T18:53:38.364+00:00",
+        orderStatus: "READY_FOR_DELIVERY",
+        restaurantName: "Eastern Tandoori Palace",
+        restaurantId: "d3fa85bc-7ee7-4f0f-83c4-2d6b6a8f6e4b",
+        location: "East",
+        rating: "4.0",
+        imgUrl: "https://images.pexels.com/photos/9792458/pexels-photo-9792458.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+        deliveryLocation: "East"
+    },
+    {
+        groupFoodOrderId: "fc7b0338-ece5-4ebc-a7e9-95a6a509780d",
+        deliveryTime: null,
+        orderTime: "2024-10-12T18:53:08.077+00:00",
+        orderStatus: "READY_FOR_DELIVERY",
+        restaurantName: "Thai Spice",
+        restaurantId: "30ed9c22-80e1-407e-8062-4dc7124425a5",
+        location: "Central",
+        rating: "4.0",
+        imgUrl: "https://images.pexels.com/photos/12255224/pexels-photo-12255224.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+        deliveryLocation: "South"
+    },
+    {
+        groupFoodOrderId: "c1596599-3629-4184-962a-85f25bbf3ac6",
+        deliveryTime: null,
+        orderTime: "2024-10-12T18:52:48.275+00:00",
+        orderStatus: "READY_FOR_DELIVERY",
+        restaurantName: "Malay Delight",
+        restaurantId: "48ef5a27-7c4e-4e67-8999-5f1a6a685aac",
+        location: "North",
+        rating: "4.0",
+        imgUrl: "https://images.pexels.com/photos/11912788/pexels-photo-11912788.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+        deliveryLocation: "South"
+    }
+    // Add more orders as needed
 ];
+
 
 const locations = ['All Location', 'North', 'South', 'Central', 'West', 'East'];
 
@@ -64,13 +116,20 @@ export default function DriverScreen() {
         setFilterModalVisible(false); // Close the modal after selection
     };
 
-    const renderOrderItem = ({ item }: { item: { restaurant: string, status: string, location: string } }) => (
+    const renderOrderItem = ({ item }: { item: any }) => (
         <TouchableOpacity style={styles.orderItem} onPress={() => handleOrderClick(item)}>
-            <Text style={styles.orderRestaurant}>{item.restaurant}</Text>
-            <Text style={styles.orderStatus}>Status: {item.status}</Text>
-            <Text style={styles.orderLocation}>{item.location}</Text>
+            <View style={styles.orderImageContainer}>
+                <Image source={{ uri: item.imgUrl }} style={styles.orderImage} />
+            </View>
+            <View style={styles.orderDetailsContainer}>
+                <Text style={styles.orderRestaurant}>{item.restaurantName}</Text>
+                <Text style={styles.orderStatus}>Status: {item.orderStatus}</Text>
+                <Text style={styles.orderLocation}>Pickup: {item.location}</Text>
+                <Text style={styles.orderDeliveryLocation}>Delivery: {item.deliveryLocation}</Text>
+            </View>
         </TouchableOpacity>
     );
+
 
     return (
         <SafeAreaView style={styles.container}>
@@ -94,7 +153,7 @@ export default function DriverScreen() {
                 <FlatList
                     data={filteredOrders}
                     renderItem={renderOrderItem}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => item.groupFoodOrderId}
                     contentContainerStyle={styles.orderList}
                 />
             </View>
@@ -158,17 +217,33 @@ const styles = StyleSheet.create({
     },
     selectedLocationLabel: {
         fontSize: 16,
+        marginVertical: 10,
+        textAlign: 'center',
     },
     orderList: {
-        paddingTop: 10, // Add some padding between the filter and the order list
+        paddingTop: 10,
     },
     orderItem: {
+        flexDirection: 'row',
         padding: 16,
         marginBottom: 10,
         backgroundColor: '#fff',
         borderRadius: 10,
         borderWidth: 1,
         borderColor: '#ddd',
+    },
+    orderImageContainer: {
+        flex: 1,
+        marginRight: 10,
+    },
+    orderImage: {
+        width: 80,
+        height: 80,
+        borderRadius: 10,
+    },
+    orderDetailsContainer: {
+        flex: 2,
+        justifyContent: 'center',
     },
     orderRestaurant: {
         fontSize: 18,
@@ -177,13 +252,14 @@ const styles = StyleSheet.create({
     orderStatus: {
         fontSize: 14,
         color: 'gray',
-        marginTop: 5,
     },
     orderLocation: {
-        fontSize: 18,
+        fontSize: 14,
         color: '#FF9500',
-        marginTop: 5,
-        fontWeight: 'bold',
+    },
+    orderDeliveryLocation: {
+        fontSize: 14,
+        color: '#00C853',
     },
     modalContainer: {
         flex: 1,
@@ -229,3 +305,4 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 });
+
