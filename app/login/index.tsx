@@ -52,6 +52,7 @@ export default function LoginScreen() {
                     name: result.name,
                     role: result.role,
                     token: result.token,
+                    email: email,
                 }));
 
                 // Save login flag to local storage
