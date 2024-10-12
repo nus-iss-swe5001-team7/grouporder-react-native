@@ -7,17 +7,16 @@ import Header from "@/components/Header"; // Import Header component
 import Ionicons from '@expo/vector-icons/Ionicons'; // Import icons for filter button
 
 const orders = [
-    { id: '1', restaurant: 'Restaurant A', status: 'READY_FOR_DELIVERY', location: 'North' },
-    { id: '2', restaurant: 'Restaurant B', status: 'READY_FOR_DELIVERY', location: 'South' },
-    { id: '3', restaurant: 'Restaurant C', status: 'READY_FOR_DELIVERY', location: 'West' },
-    { id: '4', restaurant: 'Restaurant D', status: 'ON_DELIVERY', location: 'Central' },
-    { id: '5', restaurant: 'Restaurant E', status: 'ON_DELIVERY', location: 'East' },
-    { id: '6', restaurant: 'Restaurant F', status: 'ON_DELIVERY', location: 'North' },
-    { id: '7', restaurant: 'Restaurant F', status: 'ON_DELIVERY', location: 'North' },
-    { id: '8', restaurant: 'Restaurant F', status: 'READY_FOR_DELIVERY', location: 'North' },
-    { id: '9', restaurant: 'Restaurant F', status: 'ON_DELIVERY', location: 'North' },
-    { id: '10', restaurant: 'Restaurant F', status: 'ON_DELIVERY', location: 'North' },
-
+    { id: '1', restaurant: 'Restaurant A', status: 'READY_FOR_DELIVERY', location: 'North', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
+    { id: '2', restaurant: 'Restaurant B', status: 'READY_FOR_DELIVERY', location: 'South', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
+    { id: '3', restaurant: 'Restaurant C', status: 'READY_FOR_DELIVERY', location: 'East', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
+    { id: '4', restaurant: 'Restaurant D', status: 'READY_FOR_DELIVERY', location: 'West', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
+    { id: '5', restaurant: 'Restaurant E', status: 'READY_FOR_DELIVERY', location: 'Central', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
+    { id: '6', restaurant: 'Restaurant F', status: 'READY_FOR_DELIVERY', location: 'South', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
+    { id: '7', restaurant: 'Restaurant G', status: 'READY_FOR_DELIVERY', location: 'North', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
+    { id: '8', restaurant: 'Restaurant H', status: 'READY_FOR_DELIVERY', location: 'West', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
+    { id: '9', restaurant: 'Restaurant I', status: 'READY_FOR_DELIVERY', location: 'South', orderId: 'dvsa-12313-344323', time: '24/04/2024, 8.55PM' },
+    // ... Add more orders
 ];
 
 const locations = ['All Location', 'North', 'South', 'Central', 'West', 'East'];
@@ -52,17 +51,25 @@ export default function DriverScreen() {
         }
     };
 
+    const handleOrderClick = (order: any) => {
+        // Navigate to the order detail screen with the selected order data
+        router.push({
+            pathname: '/driver/orderDetail',
+            params: { order: JSON.stringify(order) },
+        });
+    };
+
     const handleLocationFilter = (location: string) => {
         setSelectedLocation(location);
         setFilterModalVisible(false); // Close the modal after selection
     };
 
     const renderOrderItem = ({ item }: { item: { restaurant: string, status: string, location: string } }) => (
-        <View style={styles.orderItem}>
+        <TouchableOpacity style={styles.orderItem} onPress={() => handleOrderClick(item)}>
             <Text style={styles.orderRestaurant}>{item.restaurant}</Text>
             <Text style={styles.orderStatus}>Status: {item.status}</Text>
             <Text style={styles.orderLocation}>{item.location}</Text>
-        </View>
+        </TouchableOpacity>
     );
 
     return (
