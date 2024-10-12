@@ -1,10 +1,10 @@
-//app/driver/index.tsx
-
+// app/driver/index.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import baseUrl from "@/constants/projUrl";
+import Header from "@/components/Header"; // Import Header component
 
 export default function DriverScreen() {
     const [userData, setUserData] = useState<{ [key: string]: string | undefined }>({});
@@ -21,32 +21,6 @@ export default function DriverScreen() {
         fetchData();
     }, []);
 
-    const handleLogout = async () => {
-        try {
-            const apiUrl = baseUrl + '/user-service/user/logout';
-
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Add auth token if required
-                    // Authorization: `Bearer ${userData.token}`,
-                },
-            });
-
-            if (response.ok) {
-                // Logout successful, clear local storage
-                await AsyncStorage.clear();
-
-                // Navigate to login page
-                router.replace('/login');
-            } else {
-                Alert.alert('Logout Failed', 'Please try again.');
-            }
-        } catch (error) {
-            Alert.alert('Logout Error', 'An error occurred while logging out.');
-        }
-    };
 
     const renderItem = ({ item }: { item: { key: string, value: string } }) => (
         <View style={styles.row}>
@@ -55,42 +29,42 @@ export default function DriverScreen() {
         </View>
     );
 
-    // Convert the userData object to key-value pairs, and ensure the value is always a string
     const keyValuePairs = Object.entries(userData).map(([key, value]) => ({
         key,
-        value: value || '', // Ensure the value is always a string
+        value: value || '',
     }));
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Welcome to the Driver Dashboard</Text>
+        <SafeAreaView style={styles.container}>
+            {/* Navigation Bar with Account Icon */}
+            <Header title="Driver" showAccountIcon={true} onAccountPress={() => router.push('/account')} />
 
-            <View style={styles.table}>
-                <View style={styles.row}>
-                    <Text style={styles.header}>Key</Text>
-                    <Text style={styles.header}>Value</Text>
+            {/* Rest of the content below the header */}
+            <View style={styles.contentContainer}>
+                <Text style={styles.title}>Welcome to the Driver Dashboard</Text>
+
+                <View style={styles.table}>
+                    <View style={styles.row}>
+                        <Text style={styles.header}>Key</Text>
+                        <Text style={styles.header}>Value</Text>
+                    </View>
+                    <FlatList data={keyValuePairs} renderItem={renderItem} keyExtractor={(item) => item.key} />
                 </View>
-                <FlatList
-                    data={keyValuePairs}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item.key}
-                />
-            </View>
 
-            {/* Logout Button */}
-            <TouchableOpacity style={styles.button} onPress={handleLogout}>
-                <Text style={styles.buttonText}>Logout</Text>
-            </TouchableOpacity>
-        </View>
+            </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        padding: 16,
         backgroundColor: '#fff',
+    },
+    contentContainer: {
+        flex: 1,
+        marginTop: 60, // Adjust for the height of the Header
+        padding: 16,
     },
     title: {
         fontSize: 24,
@@ -125,10 +99,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 35,
         borderRadius: 20,
         alignItems: 'center',
+        marginTop: 20,
     },
     buttonText: {
         color: '#FFF',
         fontSize: 16,
         fontWeight: 'bold',
-    }
+    },
 });
