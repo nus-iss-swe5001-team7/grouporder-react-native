@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Header from "@/components/Header"; // Import Header component
+import { projUrl } from '../../constants/projUrl'; // Assuming projUrl is the base API URL
 
 export default function OrderDetailScreen() {
     const router = useRouter();
@@ -11,26 +12,58 @@ export default function OrderDetailScreen() {
 
     const [orderStatus, setOrderStatus] = useState(orderData.orderStatus);
 
-    const handleStatusChange = () => {
+    const updateOrderStatus = async (url: string) => {
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP status ${response.status}`);
+            }
+
+            return true;
+        } catch (error) {
+            if (error instanceof Error) {
+                Alert.alert('Error', `Failed to update status: ${error.message}`);
+            } else {
+                Alert.alert('Error', 'An unknown error occurred.');
+            }
+            return false;
+        }
+    };
+
+    const handleStatusChange = async () => {
+        let apiUrl = '';
         if (orderStatus === 'READY_FOR_DELIVERY') {
-            setOrderStatus('ON_DELIVERY');
+            apiUrl = `${projUrl}/onDelivered/${orderData.groupFoodOrderId}`;
+            const success = await updateOrderStatus(apiUrl);
+            if (success) {
+                setOrderStatus('ON_DELIVERY');
+            }
         } else if (orderStatus === 'ON_DELIVERY') {
-            // Set status to COMPLETED and show an alert
-            setOrderStatus('COMPLETED');
-            Alert.alert(
-                "Delivery Completed",
-                "You have successfully completed the delivery.",
-                [
-                    {
-                        text: "OK",
-                        onPress: () => {
-                            // Navigate back to the delivery list page
-                            router.replace('/driver');
-                        }
-                    }
-                ],
-                { cancelable: false }
-            );
+            apiUrl = `${projUrl}/delivered/${orderData.groupFoodOrderId}`;
+            const success = await updateOrderStatus(apiUrl);
+            if (success) {
+                setOrderStatus('DELIVERED');
+                Alert.alert(
+                    'Delivery Completed',
+                    'You have successfully completed the delivery.',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => {
+                                // Navigate back to the delivery list page
+                                router.replace('/driver');
+                            },
+                        },
+                    ],
+                    { cancelable: false }
+                );
+            }
         }
     };
 

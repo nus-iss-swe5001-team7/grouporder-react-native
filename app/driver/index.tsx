@@ -227,11 +227,11 @@ const styles = StyleSheet.create({
     },
     orderLocation: {
         fontSize: 14,
-        color: '#FF9500',
+        color: '#FF3B30',
     },
     orderDeliveryLocation: {
         fontSize: 14,
-        color: '#00C853',
+        color: '#4CD964',
     },
     modalContainer: {
         flex: 1,
