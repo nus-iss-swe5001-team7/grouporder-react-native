@@ -3,9 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Modal, Pressable, Image, ActivityIndicator, Alert   } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import Header from "@/components/Header"; // Import Header component
-import Ionicons from '@expo/vector-icons/Ionicons'; // Import icons for filter button
-import { projEnv, projUrl } from '../../constants/projUrl'; // Import both projEnv and projUrl
+import Header from "@/components/Header";
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { projEnv, projUrl } from '../../constants/projUrl';
 
 const locations = ['North', 'South', 'Central', 'West', 'East'];
 
@@ -40,7 +40,16 @@ export default function DriverScreen() {
             }
 
             const data = await response.json();
-            setFilteredOrders(data); // Update the order list with fetched data
+            setFilteredOrders(data);
+
+            if (data.length > 0) {
+                // Show a prompt with the number of available orders
+                Alert.alert('Orders Available', `${data.length} orders available for ${location} region.`);
+            } else {
+                // No orders available, show a prompt
+                Alert.alert('No Orders', `No orders available for ${location} region.`);
+            }
+
             return true; // Success
         } catch (error) {
             // Cast the error to an Error type and handle it accordingly
@@ -115,7 +124,9 @@ export default function DriverScreen() {
                     </TouchableOpacity>
                 </View>
 
-                <Text style={styles.selectedLocationLabel}>Selected Location: {selectedLocation}</Text>
+                <Text style={styles.selectedLocationLabel}>
+                    Selected Location : <Text style={styles.selectedLocationBold}>{selectedLocation}</Text>
+                </Text>
 
                 {/* Show loading indicator while fetching data */}
                 {loading ? (
@@ -172,7 +183,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         flex: 1,
-        marginTop: 60, // Adjust for the height of the Header (Ensure content is below the header)
+        marginTop: 60,
         paddingHorizontal: 16,
     },
     filterContainer: {
@@ -191,6 +202,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginVertical: 10,
         textAlign: 'center',
+    },
+    selectedLocationBold: {
+        fontWeight: 'bold',
     },
     orderList: {
         paddingTop: 10,
@@ -237,7 +251,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent background
+        backgroundColor: 'rgba(0,0,0,0.5)', 
     },
     modalContent: {
         width: '80%',
