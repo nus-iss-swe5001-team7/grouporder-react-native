@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from "@/components/Header"; // Import Header component
 import { projUrl } from '../../constants/projUrl'; // Assuming projUrl is the base API URL
 
@@ -14,12 +15,41 @@ export default function OrderDetailScreen() {
 
     const updateOrderStatus = async (url: string) => {
         try {
+            // Get JWT token from AsyncStorage
+            const storedUserData = await AsyncStorage.getItem('userData');
+            const token = storedUserData ? JSON.parse(storedUserData).token : null;
+
+            if (!token) {
+                throw new Error('No token found. Please log in again.');
+            }
+
             const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, // Pass the JWT token in the Authorization header
                 },
             });
+
+            if (response.status === 401 || response.status === 403) {
+                // Token is invalid or expired, prompt user to log in again
+                Alert.alert(
+                    'Session Expired',
+                    'Your session has expired or is invalid. Please log in again.',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: async () => {
+                                await AsyncStorage.removeItem('userData'); // Remove the stored user data
+                                router.replace('/login'); // Navigate to login screen
+                            },
+                        },
+                    ],
+                    { cancelable: false }
+                );
+                return false;
+            }
+
 
             if (!response.ok) {
                 throw new Error(`HTTP status ${response.status}`);

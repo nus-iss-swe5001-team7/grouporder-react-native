@@ -32,8 +32,41 @@ export default function DriverScreen() {
     const fetchOrders = async (userId: string, location: string): Promise<boolean> => {
         setLoading(true);
         try {
+            // Retrieve JWT token from AsyncStorage
+            const storedUserData = await AsyncStorage.getItem('userData');
+            const token = storedUserData ? JSON.parse(storedUserData).token : null;
+
+            if (!token) {
+                throw new Error('No token found. Please log in again.');
+            }
+
             const apiUrl = `${projUrl}/getOrdersForDeliveryStaff?userId=${userId}&location=${location}`;
-            const response = await fetch(apiUrl);
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,  // Include the JWT token in the Authorization header
+                },
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                // Token is invalid, expired, or unauthorized
+                Alert.alert(
+                    'Session Expired',
+                    'Your session has expired or is invalid. Please log in again.',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: async () => {
+                                await AsyncStorage.removeItem('userData'); // Clear the invalid token
+                                router.replace('/login'); // Redirect to the login page
+                            }
+                        }
+                    ],
+                    { cancelable: false }
+                );
+                return false;
+            }
 
             if (!response.ok) {
                 throw new Error(`HTTP status ${response.status}`);
@@ -251,7 +284,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)', 
+        backgroundColor: 'rgba(0,0,0,0.5)',
     },
     modalContent: {
         width: '80%',
