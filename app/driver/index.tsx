@@ -1,82 +1,19 @@
 // app/driver/index.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Modal, Pressable, Image  } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView, Modal, Pressable, Image, ActivityIndicator, Alert   } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import Header from "@/components/Header"; // Import Header component
 import Ionicons from '@expo/vector-icons/Ionicons'; // Import icons for filter button
+import { projEnv, projUrl } from '../../constants/projUrl'; // Import both projEnv and projUrl
 
-const orders = [
-    {
-        groupFoodOrderId: "364c547b-2191-49a1-8f7c-12e83b343564",
-        deliveryTime: null,
-        orderTime: "2024-10-09T17:02:49.631+00:00",
-        orderStatus: "READY_FOR_DELIVERY",
-        restaurantName: "Dumpling House",
-        restaurantId: "5b75eb9f-fb89-45a2-94da-afbe6c21ff9c",
-        location: "South",
-        rating: "3.0",
-        imgUrl: "https://images.pexels.com/photos/7363691/pexels-photo-7363691.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-        deliveryLocation: "Central"
-    },
-    {
-        groupFoodOrderId: "f82993c9-de57-428b-a44c-161716f275f7",
-        deliveryTime: null,
-        orderTime: "2024-10-12T18:53:54.413+00:00",
-        orderStatus: "READY_FOR_DELIVERY",
-        restaurantName: "West Tempura House",
-        restaurantId: "6cb8f841-6b19-43a2-9a5f-8e8b9e9e375e",
-        location: "West",
-        rating: "4.0",
-        imgUrl: "https://images.pexels.com/photos/2098131/pexels-photo-2098131.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-        deliveryLocation: "West"
-    },
-    {
-        groupFoodOrderId: "8773eac3-e5d2-48b6-adc0-eb7b7ac8b421",
-        deliveryTime: null,
-        orderTime: "2024-10-12T18:53:38.364+00:00",
-        orderStatus: "READY_FOR_DELIVERY",
-        restaurantName: "Eastern Tandoori Palace",
-        restaurantId: "d3fa85bc-7ee7-4f0f-83c4-2d6b6a8f6e4b",
-        location: "East",
-        rating: "4.0",
-        imgUrl: "https://images.pexels.com/photos/9792458/pexels-photo-9792458.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-        deliveryLocation: "East"
-    },
-    {
-        groupFoodOrderId: "fc7b0338-ece5-4ebc-a7e9-95a6a509780d",
-        deliveryTime: null,
-        orderTime: "2024-10-12T18:53:08.077+00:00",
-        orderStatus: "READY_FOR_DELIVERY",
-        restaurantName: "Thai Spice",
-        restaurantId: "30ed9c22-80e1-407e-8062-4dc7124425a5",
-        location: "Central",
-        rating: "4.0",
-        imgUrl: "https://images.pexels.com/photos/12255224/pexels-photo-12255224.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-        deliveryLocation: "South"
-    },
-    {
-        groupFoodOrderId: "c1596599-3629-4184-962a-85f25bbf3ac6",
-        deliveryTime: null,
-        orderTime: "2024-10-12T18:52:48.275+00:00",
-        orderStatus: "READY_FOR_DELIVERY",
-        restaurantName: "Malay Delight",
-        restaurantId: "48ef5a27-7c4e-4e67-8999-5f1a6a685aac",
-        location: "North",
-        rating: "4.0",
-        imgUrl: "https://images.pexels.com/photos/11912788/pexels-photo-11912788.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-        deliveryLocation: "South"
-    }
-    // Add more orders as needed
-];
-
-
-const locations = ['All Location', 'North', 'South', 'Central', 'West', 'East'];
+const locations = ['North', 'South', 'Central', 'West', 'East'];
 
 export default function DriverScreen() {
     const [userData, setUserData] = useState<{ [key: string]: string | undefined }>({});
-    const [selectedLocation, setSelectedLocation] = useState('All Location');
-    const [filteredOrders, setFilteredOrders] = useState(orders);
+    const [selectedLocation, setSelectedLocation] = useState('North');
+    const [filteredOrders, setFilteredOrders] = useState([]);
+    const [loading, setLoading] = useState(true); // To manage loading state
     const [filterModalVisible, setFilterModalVisible] = useState(false);
     const router = useRouter(); // Use router for navigation
 
@@ -85,23 +22,39 @@ export default function DriverScreen() {
             const data = await AsyncStorage.getItem('userData');
             if (data) {
                 setUserData(JSON.parse(data)); // Parse and set the data
+                const userId = JSON.parse(data).userId;
+                fetchOrders(userId, selectedLocation);
             }
         };
         fetchData();
     }, []);
 
-    useEffect(() => {
-        filterOrders();
-    }, [selectedLocation]);
+    const fetchOrders = async (userId: string, location: string): Promise<boolean> => {
+        setLoading(true);
+        try {
+            const apiUrl = `${projUrl}/getOrdersForDeliveryStaff?userId=${userId}&location=${location}`;
+            const response = await fetch(apiUrl);
 
-    const filterOrders = () => {
-        if (selectedLocation === 'All Location') {
-            setFilteredOrders(orders);
-        } else {
-            const filtered = orders.filter(order => order.location === selectedLocation);
-            setFilteredOrders(filtered);
+            if (!response.ok) {
+                throw new Error(`HTTP status ${response.status}`);
+            }
+
+            const data = await response.json();
+            setFilteredOrders(data); // Update the order list with fetched data
+            return true; // Success
+        } catch (error) {
+            // Cast the error to an Error type and handle it accordingly
+            if (error instanceof Error) {
+                Alert.alert('Error', `Failed to fetch orders: ${error.message}`);
+            } else {
+                Alert.alert('Error', 'An unknown error occurred.');
+            }
+            return false; // Failure
+        } finally {
+            setLoading(false);
         }
     };
+
 
     const handleOrderClick = (order: any) => {
         // Navigate to the order detail screen with the selected order data
@@ -111,10 +64,26 @@ export default function DriverScreen() {
         });
     };
 
-    const handleLocationFilter = (location: string) => {
-        setSelectedLocation(location);
+    // Handle location filter and fetch orders for the selected location
+    const handleLocationFilter = async (location: string) => {
         setFilterModalVisible(false); // Close the modal after selection
+        const previousLocation = selectedLocation; // Store previous location
+        const userId = userData.userId; // Get user ID from userData state
+        if (userId) {
+            const success = await fetchOrders(userId, location); // Fetch orders for the selected location
+            if (success) {
+                setSelectedLocation(location); // Update location only on success
+            } else {
+                // Fetch failed, keep previous location
+                // Optionally inform the user that the location hasn't changed
+                Alert.alert(
+                    'Error',
+                    `Failed to fetch orders for ${location}. Keeping previous location: ${previousLocation}.`
+                );
+            }
+        }
     };
+
 
     const renderOrderItem = ({ item }: { item: any }) => (
         <TouchableOpacity style={styles.orderItem} onPress={() => handleOrderClick(item)}>
@@ -148,14 +117,17 @@ export default function DriverScreen() {
 
                 <Text style={styles.selectedLocationLabel}>Selected Location: {selectedLocation}</Text>
 
-
-                {/* Order List */}
-                <FlatList
-                    data={filteredOrders}
-                    renderItem={renderOrderItem}
-                    keyExtractor={(item) => item.groupFoodOrderId}
-                    contentContainerStyle={styles.orderList}
-                />
+                {/* Show loading indicator while fetching data */}
+                {loading ? (
+                    <ActivityIndicator size="large" color="#FF9500" />
+                ) : (
+                    <FlatList
+                        data={filteredOrders}
+                        renderItem={renderOrderItem}
+                        keyExtractor={(item) => item.groupFoodOrderId}
+                        contentContainerStyle={styles.orderList}
+                    />
+                )}
             </View>
 
             {/* Modal for Location Filter */}
