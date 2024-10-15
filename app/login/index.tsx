@@ -66,7 +66,7 @@ export default function LoginScreen() {
                     setError('Invalid credentials. Please try again.');
                 } else if (response.status === 404) {
                     if (projEnv == "development"){
-                        setError('Invalid Mock Request, please use {"name":"demo@email.com","password":"password"}');
+                        setError('Invalid Mock Request (https://0vl43.wiremockapi.cloud), please use {"name":"demo@email.com","password":"password"}');
                     } else {
                         setError('Login endpoint not found. Please contact support or try again later.');
                     }
