@@ -37,7 +37,7 @@ export default function LoginScreen() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    name: email,
+                    email: email,
                     password,
                 }),
             });
