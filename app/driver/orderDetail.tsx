@@ -69,13 +69,13 @@ export default function OrderDetailScreen() {
     const handleStatusChange = async () => {
         let apiUrl = '';
         if (orderStatus === 'READY_FOR_DELIVERY') {
-            apiUrl = `${projUrl}/onDelivered/${orderData.groupFoodOrderId}`;
+            apiUrl = `${projUrl}/delivery-service/deliveryAPI/onDelivered/${orderData.groupFoodOrderId}`;
             const success = await updateOrderStatus(apiUrl);
             if (success) {
                 setOrderStatus('ON_DELIVERY');
             }
         } else if (orderStatus === 'ON_DELIVERY') {
-            apiUrl = `${projUrl}/delivered/${orderData.groupFoodOrderId}`;
+            apiUrl = `${projUrl}/delivery-service/deliveryAPI/delivered/${orderData.groupFoodOrderId}`;
             const success = await updateOrderStatus(apiUrl);
             if (success) {
                 setOrderStatus('DELIVERED');
