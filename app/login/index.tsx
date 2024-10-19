@@ -77,7 +77,12 @@ export default function LoginScreen() {
                 }
             }
         } catch (error) {
-            setError('An error occurred. Please try again later.');
+            // Handle generic errors
+            if (error instanceof Error) {
+                setError(error.message || 'An error occurred. Please try again later.');
+            } else {
+                setError('An unknown error occurred. Please try again later.');
+            }
         }
     };
 
