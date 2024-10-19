@@ -74,6 +74,7 @@ export default function SignUpForm() {
                     name: result.name,
                     role: result.role,
                     token: result.token,
+                    email: email,
                 }));
 
                 await AsyncStorage.setItem('userlogin', 'true');
