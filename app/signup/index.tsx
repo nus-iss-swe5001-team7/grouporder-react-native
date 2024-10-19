@@ -1,27 +1,54 @@
 //app/signup/index.tsx
 
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+    View,
+    TextInput,
+    Button,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    KeyboardAvoidingView,
+    Platform
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Dropdown } from 'react-native-element-dropdown'; // Import the Dropdown component
+import baseUrl, {projEnv} from '../../constants/projUrl'; // Import the correct config based on the environment
 
 export default function SignUpForm() {
-    const [username, setUsername] = useState('');
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordagain, setPasswordagain] = useState<string>('');
-    const [role, setRole] = useState<string>('Driver'); // Default role
+    const [role, setRole] = useState<string>('delivery'); // Default role
     const [error, setError] = useState('');
     const router = useRouter();
 
-    const roles = [
-        { label: 'Driver', value: 'Driver' },
-        { label: 'Customer', value: 'Customer' }
-    ];
-
     const handleSignUp = async () => {
-        const apiUrl = 'https://66dd802bf7bcc0bbdcde43b3.mockapi.io/user-services/signup';
+        // Regular expression for basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        // Simple validation to check if all required fields are filled
+        if (!name || !email || !password || !passwordagain) {
+            setError("All fields are required.");
+            return;
+        }
+
+        // Validate the email format
+        if (!emailRegex.test(email)) {
+            setError("Please enter a valid email address.");
+            return;
+        }
+
+        // Check if password and confirm password match
+        if (password !== passwordagain) {
+            setError("Passwords do not match.");
+            return;
+        }
+
+        const apiUrl = baseUrl + '/user-service/user/register';
+
 
         try {
             const response = await fetch(apiUrl, {
@@ -30,20 +57,38 @@ export default function SignUpForm() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    username,
+                    name,
                     password,
                     email,
                     role,
                 }),
             });
 
-            const result = await response.json();
-
             if (response.ok) {
+
+                const result = await response.json();
+
+                // Store the user info (userId, name, role, token) in AsyncStorage
+                await AsyncStorage.setItem('userData', JSON.stringify({
+                    userId: result.userId,
+                    name: result.name,
+                    role: result.role,
+                    token: result.token,
+                    email: email,
+                }));
+
                 await AsyncStorage.setItem('userlogin', 'true');
                 router.replace('/driver');
             } else {
-                setError(result.message || 'Sign-up failed. Please try again.');
+                if (response.status === 404) {
+                    if (projEnv == "development") {
+                        setError('Invalid Mock Request, please use {"name":"demo","password": "password","email":"demo@email.com","role":"delivery"}');
+                    } else {
+                        setError(response.status +'Sign-up failed. Please try again.');
+                    }
+                } else {
+                    setError(response.status +'Sign-up failed. Please try again.');
+                }
             }
         } catch (error) {
             setError('An error occurred. Please try again later.');
@@ -51,18 +96,22 @@ export default function SignUpForm() {
     };
 
     return (
-        <View style={styles.pageContainer}>
+        <KeyboardAvoidingView
+            style={styles.pageContainer}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Add this to adjust for keyboard on iOS and Android
+        >
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Sign Up</Text>
+                <Text style={styles.headerTitle}>Driver Sign Up</Text>
                 <Text style={styles.headerSubtitle}>Please sign up a new account</Text>
             </View>
 
             <View style={styles.container}>
+
                 <TextInput
                     style={styles.input}
                     placeholder="Username"
-                    value={username}
-                    onChangeText={setUsername}
+                    value={name}
+                    onChangeText={setName}
                 />
                 <TextInput
                     style={styles.input}
@@ -85,24 +134,6 @@ export default function SignUpForm() {
                     secureTextEntry
                 />
 
-                <Text style={styles.normalTextLeft}>Roles</Text>
-
-                {/* Dropdown for Roles */}
-                {/* Wrap Dropdown in View */}
-                <View style={styles.dropdownContainer}>
-                    <Dropdown
-                        data={roles}
-                        labelField="label"
-                        valueField="value"
-                        placeholder="Select Role"
-                        value={role}
-                        onChange={item => setRole(item.value)}
-                        style={styles.dropdown}
-                        placeholderStyle={styles.placeholderStyle}
-                        selectedTextStyle={styles.selectedTextStyle}
-                    />
-                </View>
-
                 {error ? <Text style={styles.error}>{error}</Text> : null}
 
                 <TouchableOpacity style={styles.button} onPress={handleSignUp}>
@@ -116,7 +147,7 @@ export default function SignUpForm() {
                     </Text>
                 </Text>
             </View>
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 
