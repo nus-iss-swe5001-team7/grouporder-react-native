@@ -212,11 +212,12 @@ export default function DriverScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        marginTop: 40,
         backgroundColor: '#fff',
     },
     contentContainer: {
         flex: 1,
-        marginTop: 60,
+        marginTop: 80,
         paddingHorizontal: 16,
     },
     filterContainer: {
