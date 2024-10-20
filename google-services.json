@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "132988073892",
+    "project_id": "groupfoodorder-team7",
+    "storage_bucket": "groupfoodorder-team7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:132988073892:android:fbc36b6219fd5236b57331",
+        "android_client_info": {
+          "package_name": "com.nus.team7.groupfoodorder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbLUF_JouynYsg2eExLt72xAWVBCk89AA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
