@@ -1,14 +1,17 @@
 // app/account/index.tsx
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import Header from "@/components/Header"; // Assuming you already have a Header component
+import Header from "@/components/Header";
+import getProjUrl from '../../constants/projUrl';
 
 export default function AccountScreen() {
     const [userData, setUserData] = useState<{ userId: string, name: string, role: string, email: string} | null>(null);
-    const router = useRouter(); // Use router for navigation
+    const [projUrl, setProjUrl] = useState('');
+
+    const router = useRouter();
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -26,11 +29,52 @@ export default function AccountScreen() {
     }, []);
 
     const handleLogout = async () => {
+        const projUrl = await getProjUrl();
+        const apiUrl = projUrl + '/user/logout'; // Set the logout API endpoint
         try {
-            await AsyncStorage.clear(); // Clear all stored data
-            router.replace('/login'); // Navigate back to login screen
+            // Retrieve the stored token from AsyncStorage
+            const storedUserData = await AsyncStorage.getItem('userData');
+            const token = storedUserData ? JSON.parse(storedUserData).token : null;
+
+            if (!token) {
+                throw new Error('No token found. Please log in again.');
+            }
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // Send the token with the request
+                },
+            });
+
+            console.log('Response:', response);
+
+            // Handle different HTTP response codes
+            if (response.ok) {
+                // Successful logout, clear local storage and redirect to login
+                await AsyncStorage.clear();
+                router.replace('/login'); // Navigate back to login screen
+            } else if (response.status === 401 || response.status === 403) {
+                // Unauthorized or Forbidden (token might be invalid or expired)
+                Alert.alert('Error', 'Session expired or unauthorized. Please log in again.');
+                await AsyncStorage.clear();
+                router.replace('/login'); // Redirect to login
+            } else if (response.status === 500) {
+                // Server error
+                Alert.alert('Error', 'Internal server error. Please try again later.');
+            } else {
+                // Handle other status codes
+                Alert.alert('Error', `Unexpected error: ${response.statusText}`);
+            }
         } catch (error) {
-            console.error("Error during logout:", error);
+            // Handle generic errors
+            if (error instanceof Error) {
+                Alert.alert('Error', error.message || 'An error occurred. Please try again later.');
+                console.log('error:', error.message);
+            } else {
+                Alert.alert('Error', 'An unknown error occurred. Please try again later.');
+            }
         }
     };
 
