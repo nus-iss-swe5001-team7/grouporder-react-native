@@ -1,6 +1,6 @@
 // app/driver/orderDetail.tsx
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert, Image, ActivityIndicator  } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from "@/components/Header"; // Import Header component
@@ -12,8 +12,10 @@ export default function OrderDetailScreen() {
     const orderData = JSON.parse(order as string);
 
     const [orderStatus, setOrderStatus] = useState(orderData.orderStatus);
+    const [loading, setLoading] = useState(false); // State to manage loading indicator
 
     const updateOrderStatus = async (url: string) => {
+        setLoading(true); // Show loading indicator when the API call starts
         try {
             // Get JWT token from AsyncStorage
             const storedUserData = await AsyncStorage.getItem('userData');
@@ -63,19 +65,21 @@ export default function OrderDetailScreen() {
                 Alert.alert('Error', 'An unknown error occurred.');
             }
             return false;
+        } finally {
+            setLoading(false); // Hide loading indicator after the API call is complete
         }
     };
 
     const handleStatusChange = async () => {
         let apiUrl = '';
         if (orderStatus === 'READY_FOR_DELIVERY') {
-            apiUrl = `${projUrl}/delivery-service/deliveryAPI/onDelivered/${orderData.groupFoodOrderId}`;
+            apiUrl = `${projUrl}/deliveryAPI/onDelivered/${orderData.groupFoodOrderId}`;
             const success = await updateOrderStatus(apiUrl);
             if (success) {
                 setOrderStatus('ON_DELIVERY');
             }
         } else if (orderStatus === 'ON_DELIVERY') {
-            apiUrl = `${projUrl}/delivery-service/deliveryAPI/delivered/${orderData.groupFoodOrderId}`;
+            apiUrl = `${projUrl}/deliveryAPI/delivered/${orderData.groupFoodOrderId}`;
             const success = await updateOrderStatus(apiUrl);
             if (success) {
                 setOrderStatus('DELIVERED');
@@ -116,6 +120,9 @@ export default function OrderDetailScreen() {
 
             {/* Order details and status update button */}
             <View style={styles.orderActionContainer}>
+                {loading ? ( // Show loading spinner when waiting for the API response
+                    <ActivityIndicator size="large" color="#FF9500" />
+                ) : (
                 <TouchableOpacity
                     style={[styles.statusButton, orderStatus === 'READY_FOR_DELIVERY' ? styles.acceptButton : styles.completeButton]}
                     onPress={handleStatusChange}
@@ -124,6 +131,7 @@ export default function OrderDetailScreen() {
                         {orderStatus === 'READY_FOR_DELIVERY' ? 'Accept Delivery' : 'Complete Delivery'}
                     </Text>
                 </TouchableOpacity>
+                )}
             </View>
         </SafeAreaView>
     );
@@ -132,6 +140,7 @@ export default function OrderDetailScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        marginTop: 40,
         backgroundColor: '#fff'
     },
     contentContainer: {

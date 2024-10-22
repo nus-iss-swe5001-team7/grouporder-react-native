@@ -1,6 +1,6 @@
 //app/signup/index.tsx
 
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     View,
     TextInput,
@@ -9,12 +9,13 @@ import {
     StyleSheet,
     TouchableOpacity,
     KeyboardAvoidingView,
-    Platform
+    Platform, Switch
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { Dropdown } from 'react-native-element-dropdown'; // Import the Dropdown component
-import baseUrl, {projEnv} from '../../constants/projUrl'; // Import the correct config based on the environment
+import baseUrl, {projEnv} from '../../constants/projUrl';
+import getProjUrl from "@/constants/projUrl"; // Import the correct config based on the environment
 
 export default function SignUpForm() {
     const [name, setName] = useState('');
@@ -22,8 +23,30 @@ export default function SignUpForm() {
     const [password, setPassword] = useState('');
     const [passwordagain, setPasswordagain] = useState<string>('');
     const [role, setRole] = useState<string>('delivery'); // Default role
+    const [projEnv, setProjEnv] = useState('production'); // Local state to handle environment
+    const [projUrl, setProjUrl] = useState(''); // To store the API URL dynamically
     const [error, setError] = useState('');
     const router = useRouter();
+
+    // Fetch the environment and API URL when the component mounts
+    useEffect(() => {
+        const loadEnv = async () => {
+            const storedEnv = await AsyncStorage.getItem('projEnv') || 'production';
+            setProjEnv(storedEnv);
+            const url = await getProjUrl();
+            setProjUrl(url);
+        };
+        loadEnv();
+    }, []);
+
+    // Function to toggle environment
+    const toggleEnv = async () => {
+        const newEnv = projEnv === 'development' ? 'production' : 'development';
+        setProjEnv(newEnv);
+        await AsyncStorage.setItem('projEnv', newEnv); // Store environment in AsyncStorage
+        const url = await getProjUrl(); // Get the new API URL
+        setProjUrl(url); // Update the API URL
+    };
 
     const handleSignUp = async () => {
         // Regular expression for basic email validation
@@ -47,7 +70,7 @@ export default function SignUpForm() {
             return;
         }
 
-        const apiUrl = baseUrl + '/user-service/user/register';
+        const apiUrl = projUrl + '/user/register';
 
 
         try {
@@ -135,6 +158,15 @@ export default function SignUpForm() {
                 />
 
                 {error ? <Text style={styles.error}>{error}</Text> : null}
+
+                {/* Toggle Environment */}
+                <View style={styles.envSwitchContainer}>
+                    <Text>{projEnv === 'development' ? 'Mock Development' : 'Production'} Environment</Text>
+                    <Switch
+                        value={projEnv === 'production'}
+                        onValueChange={toggleEnv}
+                    />
+                </View>
 
                 <TouchableOpacity style={styles.button} onPress={handleSignUp}>
                     <Text style={styles.buttonText}>Sign Up</Text>
@@ -236,5 +268,11 @@ const styles = StyleSheet.create({
     linkText: {
         color: '#FF9500',
         fontWeight: 'bold',
+    },
+    envSwitchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 16,
     },
 });

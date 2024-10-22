@@ -40,7 +40,7 @@ export default function DriverScreen() {
                 throw new Error('No token found. Please log in again.');
             }
 
-            const apiUrl = `${projUrl}/delivery-service/deliveryAPI/getAllGroupOrdersForDelivery?userId=${userId}&location=${location}`;
+            const apiUrl = `${projUrl}/deliveryAPI/getAllGroupOrdersForDelivery?userId=${userId}&location=${location}`;
             const response = await fetch(apiUrl, {
                 method: 'GET',
                 headers: {
@@ -212,11 +212,12 @@ export default function DriverScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        marginTop: 40,
         backgroundColor: '#fff',
     },
     contentContainer: {
         flex: 1,
-        marginTop: 60,
+        marginTop: 80,
         paddingHorizontal: 16,
     },
     filterContainer: {
