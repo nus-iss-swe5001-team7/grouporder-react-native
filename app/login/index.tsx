@@ -1,7 +1,7 @@
 //app/login/index.tsx
 
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+import { View, TextInput, Button, Text, StyleSheet, TouchableOpacity, Switch, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import getProjUrl from '../../constants/projUrl'; // Import the function to get projUrl
@@ -10,14 +10,14 @@ export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [projEnv, setProjEnv] = useState('development'); // Local state to handle environment
+    const [projEnv, setProjEnv] = useState('production'); // Local state to handle environment
     const [projUrl, setProjUrl] = useState(''); // To store the API URL dynamically
     const router = useRouter();
 
     // Fetch the environment and API URL when the component mounts
     useEffect(() => {
         const loadEnv = async () => {
-            const storedEnv = await AsyncStorage.getItem('projEnv') || 'development';
+            const storedEnv = await AsyncStorage.getItem('projEnv') || 'production';
             setProjEnv(storedEnv);
             const url = await getProjUrl();
             setProjUrl(url);
@@ -68,6 +68,26 @@ export default function LoginScreen() {
                 console.log('Response OK:', response);
 
                 const result = await response.json();
+
+                // Check the user role before proceeding
+                if (result.role !== 'delivery') {
+                    // Show an alert with the email and role, then log out
+                    Alert.alert(
+                        'Role not allowed',
+                        `Email: ${email}\nYour account role is '${result.role}'.`,
+                        [
+                            {
+                                text: 'OK',
+                                onPress: async () => {
+                                    await AsyncStorage.clear(); // Clear user data and go back to login screen
+                                    router.replace('/login');
+                                },
+                            },
+                        ],
+                        { cancelable: false }
+                    );
+                    return;
+                }
 
                 // Store the user info (userId, name, role, token) in AsyncStorage
                 await AsyncStorage.setItem('userData', JSON.stringify({
