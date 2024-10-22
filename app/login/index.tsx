@@ -10,14 +10,14 @@ export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [projEnv, setProjEnv] = useState('development'); // Local state to handle environment
+    const [projEnv, setProjEnv] = useState('production'); // Local state to handle environment
     const [projUrl, setProjUrl] = useState(''); // To store the API URL dynamically
     const router = useRouter();
 
     // Fetch the environment and API URL when the component mounts
     useEffect(() => {
         const loadEnv = async () => {
-            const storedEnv = await AsyncStorage.getItem('projEnv') || 'development';
+            const storedEnv = await AsyncStorage.getItem('projEnv') || 'production';
             setProjEnv(storedEnv);
             const url = await getProjUrl();
             setProjUrl(url);
