@@ -47,7 +47,7 @@ export default function SignUpForm() {
             return;
         }
 
-        const apiUrl = baseUrl + '/user-service/user/register';
+        const apiUrl = baseUrl + '/user/register';
 
 
         try {

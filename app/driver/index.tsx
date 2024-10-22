@@ -40,7 +40,7 @@ export default function DriverScreen() {
                 throw new Error('No token found. Please log in again.');
             }
 
-            const apiUrl = `${projUrl}/delivery-service/deliveryAPI/getAllGroupOrdersForDelivery?userId=${userId}&location=${location}`;
+            const apiUrl = `${projUrl}/deliveryAPI/getAllGroupOrdersForDelivery?userId=${userId}&location=${location}`;
             const response = await fetch(apiUrl, {
                 method: 'GET',
                 headers: {

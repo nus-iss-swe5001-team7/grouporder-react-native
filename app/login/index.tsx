@@ -50,7 +50,7 @@ export default function LoginScreen() {
             return;
         }
 
-        const apiUrl = projUrl + '/user-service/user/login';
+        const apiUrl = projUrl + '/user/login';
 
         try {
             const response = await fetch(apiUrl, {
@@ -65,6 +65,7 @@ export default function LoginScreen() {
             });
 
             if (response.ok) {
+                console.log('Response OK:', response);
 
                 const result = await response.json();
 
@@ -83,6 +84,9 @@ export default function LoginScreen() {
 
             }
             else {
+                console.log('Response Status:', response.status);
+                console.log('Response StatusText:', response.statusText);
+                console.log('Response KO:', response);
                 // Handle error based on HTTP status code
                 if (response.status === 401) {
                     setError('Invalid credentials. Please try again.');
@@ -102,6 +106,7 @@ export default function LoginScreen() {
             // Handle generic errors
             if (error instanceof Error) {
                 setError(error.message || 'An error occurred. Please try again later.');
+                console.log('error:', error.message);
             } else {
                 setError('An unknown error occurred. Please try again later.');
             }
