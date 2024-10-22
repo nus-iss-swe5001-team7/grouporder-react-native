@@ -1,16 +1,38 @@
 //app/login/index.tsx
 
-import React, {useState} from 'react';
-import {View, TextInput, Button, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, Button, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useRouter} from 'expo-router';
-import { projEnv, projUrl } from '../../constants/projUrl'; // Import both projEnv and projUrl
+import { useRouter } from 'expo-router';
+import getProjUrl from '../../constants/projUrl'; // Import the function to get projUrl
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [projEnv, setProjEnv] = useState('development'); // Local state to handle environment
+    const [projUrl, setProjUrl] = useState(''); // To store the API URL dynamically
     const router = useRouter();
+
+    // Fetch the environment and API URL when the component mounts
+    useEffect(() => {
+        const loadEnv = async () => {
+            const storedEnv = await AsyncStorage.getItem('projEnv') || 'development';
+            setProjEnv(storedEnv);
+            const url = await getProjUrl();
+            setProjUrl(url);
+        };
+        loadEnv();
+    }, []);
+
+    // Function to toggle environment
+    const toggleEnv = async () => {
+        const newEnv = projEnv === 'development' ? 'production' : 'development';
+        setProjEnv(newEnv);
+        await AsyncStorage.setItem('projEnv', newEnv); // Store environment in AsyncStorage
+        const url = await getProjUrl(); // Get the new API URL
+        setProjUrl(url); // Update the API URL
+    };
 
     const handleLogin = async () => {
         // Regular expression for basic email validation
@@ -28,7 +50,7 @@ export default function LoginScreen() {
             return;
         }
 
-        const apiUrl = projUrl + '/user-service/user/login';
+        const apiUrl = projUrl + '/user/login';
 
         try {
             const response = await fetch(apiUrl, {
@@ -43,6 +65,7 @@ export default function LoginScreen() {
             });
 
             if (response.ok) {
+                console.log('Response OK:', response);
 
                 const result = await response.json();
 
@@ -61,11 +84,14 @@ export default function LoginScreen() {
 
             }
             else {
+                console.log('Response Status:', response.status);
+                console.log('Response StatusText:', response.statusText);
+                console.log('Response KO:', response);
                 // Handle error based on HTTP status code
                 if (response.status === 401) {
                     setError('Invalid credentials. Please try again.');
                 } else if (response.status === 404) {
-                    if (projEnv == "development"){
+                    if (projEnv === "development"){
                         setError('Invalid Mock Request (https://0vl43.wiremockapi.cloud), please use {"name":"demo@email.com","password":"password"}');
                     } else {
                         setError('Login endpoint not found. Please contact support or try again later.');
@@ -80,6 +106,7 @@ export default function LoginScreen() {
             // Handle generic errors
             if (error instanceof Error) {
                 setError(error.message || 'An error occurred. Please try again later.');
+                console.log('error:', error.message);
             } else {
                 setError('An unknown error occurred. Please try again later.');
             }
@@ -109,6 +136,17 @@ export default function LoginScreen() {
                     secureTextEntry
                 />
                 {error ? <Text style={styles.error}>{error}</Text> : null}
+
+
+                {/* Toggle Environment */}
+                <View style={styles.envSwitchContainer}>
+                    <Text>{projEnv === 'development' ? 'Mock Development' : 'Production'} Environment</Text>
+                    <Switch
+                        value={projEnv === 'production'}
+                        onValueChange={toggleEnv}
+                    />
+                </View>
+
                 <TouchableOpacity style={styles.button} onPress={handleLogin}>
                     <Text style={styles.buttonText}>Login</Text>
                 </TouchableOpacity>
@@ -185,5 +223,11 @@ const styles = StyleSheet.create({
     linkText: {
         color: '#FF9500',
         fontWeight: 'bold',
+    },
+    envSwitchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 16,
     },
 });

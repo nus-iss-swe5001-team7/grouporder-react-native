@@ -69,13 +69,13 @@ export default function OrderDetailScreen() {
     const handleStatusChange = async () => {
         let apiUrl = '';
         if (orderStatus === 'READY_FOR_DELIVERY') {
-            apiUrl = `${projUrl}/delivery-service/deliveryAPI/onDelivered/${orderData.groupFoodOrderId}`;
+            apiUrl = `${projUrl}/deliveryAPI/onDelivered/${orderData.groupFoodOrderId}`;
             const success = await updateOrderStatus(apiUrl);
             if (success) {
                 setOrderStatus('ON_DELIVERY');
             }
         } else if (orderStatus === 'ON_DELIVERY') {
-            apiUrl = `${projUrl}/delivery-service/deliveryAPI/delivered/${orderData.groupFoodOrderId}`;
+            apiUrl = `${projUrl}/deliveryAPI/delivered/${orderData.groupFoodOrderId}`;
             const success = await updateOrderStatus(apiUrl);
             if (success) {
                 setOrderStatus('DELIVERED');
@@ -132,6 +132,7 @@ export default function OrderDetailScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        marginTop: 40,
         backgroundColor: '#fff'
     },
     contentContainer: {
