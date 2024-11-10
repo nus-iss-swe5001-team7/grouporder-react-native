@@ -103,22 +103,7 @@ export default function OrderDetailScreen() {
         }
     };
 
-    const openInGoogleMaps = () => {
-        // Parse the latitude, longitude, and address based on the order status
-        const locationData = orderStatus === 'READY_FOR_DELIVERY'
-            ? {
-                latitude: orderData.restaurantLatitude,
-                longitude: orderData.restaurantLongitude,
-                address: orderData.restaurantAddress
-            }
-            : {
-                latitude: orderData.deliveryLatitude,
-                longitude: orderData.deliveryLongitude,
-                address: orderData.deliveryAddress
-            };
-
-        const { latitude, longitude, address } = locationData;
-
+    const openInGoogleMaps = (latitude: any, longitude: any, address: any) => {
         // Construct the Google Maps URL for navigation from the current location to the destination
         const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`;
 
@@ -130,6 +115,7 @@ export default function OrderDetailScreen() {
 
 
 
+
     return (
         <SafeAreaView style={styles.container}>
             <Header title="Order Detail" showBackButton={true} onBackPress={() => router.back()} />
@@ -138,32 +124,40 @@ export default function OrderDetailScreen() {
                     {/* Restaurant Image */}
                     <Image source={{ uri: orderData.imgUrl }} style={styles.restaurantImage} />
                     <Text style={styles.restaurantName}>{orderData.restaurantName}</Text>
-                    <Text style={styles.orderInfo}>Order ID: {orderData.groupFoodOrderId}</Text>
-                    <Text style={styles.orderInfo}>Order Time: {new Date(orderData.orderTime).toLocaleString()}</Text>
-                    <Text style={styles.orderInfo}>Pickup Location: {orderData.location}</Text>
-                    <Text style={styles.orderInfo}>Delivery Location: {orderData.deliveryLocation}</Text>
 
-                    {/* Address Details */}
-                    <Text style={styles.orderInfo}>
-                        {orderStatus === 'READY_FOR_DELIVERY' ? "Pickup Address: " + orderData.restaurantAddress : "Delivery Address: " + orderData.deliveryAddress}
-                    </Text>
-                    <Text style={styles.orderInfo}>
-                        {orderStatus === 'READY_FOR_DELIVERY' ? "Pickup Latitude: " + orderData.restaurantLatitude : "Delivery Latitude: " + orderData.deliveryLatitude}
-                    </Text>
-                    <Text style={styles.orderInfo}>
-                        {orderStatus === 'READY_FOR_DELIVERY' ? "Pickup Longitude: " + orderData.restaurantLongitude : "Delivery Longitude: " + orderData.deliveryLongitude}
-                    </Text>
+                    {/* Section 1: Order Details */}
+                    <View style={styles.section}>
+                        <Text style={styles.orderInfo}>Order ID: {orderData.groupFoodOrderId}</Text>
+                        <Text style={styles.orderInfo}>Order Time: {new Date(orderData.orderTime).toLocaleString()}</Text>
+                        <Text style={styles.orderInfo}>Status: <Text style={styles.boldText}>{orderStatus}</Text></Text>
+                    </View>
 
-                    <Text style={styles.orderInfo}>Rating: {orderData.rating}</Text>
-                    <Text style={styles.orderInfo}>Status: {orderStatus}</Text>
+                    {/* Section 2: Pickup Details */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Pickup Details</Text>
+                        <View style={styles.inlineContainer}>
+                            <Text style={styles.orderInfo}>Pickup Location: {orderData.location} </Text>
+                            <TouchableOpacity onPress={() => openInGoogleMaps(orderData.restaurantLatitude, orderData.restaurantLongitude, orderData.restaurantAddress)}>
+                                <Text style={styles.emojiButton}>➡️🌎</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={styles.orderInfo}>Pickup Address: {orderData.restaurantAddress}</Text>
+                    </View>
 
-                    {/* Button to open Google Maps */}
-                    <TouchableOpacity style={styles.mapButton} onPress={openInGoogleMaps}>
-                        <Text style={styles.mapButtonText}>{orderStatus === 'READY_FOR_DELIVERY' ? "Find Restaurant" : "Find Customer"}</Text>
-                    </TouchableOpacity>
-
+                    {/* Section 3: Delivery Details */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Delivery Details</Text>
+                        <View style={styles.inlineContainer}>
+                            <Text style={styles.orderInfo}>Delivery Location: {orderData.deliveryLocation}</Text>
+                            <TouchableOpacity onPress={() => openInGoogleMaps(orderData.deliveryLatitude, orderData.deliveryLongitude, orderData.deliveryAddress)}>
+                                <Text style={styles.emojiButton}>➡️🌎</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={styles.orderInfo}>Delivery Address: {orderData.deliveryAddress}</Text>
+                    </View>
                 </View>
             </View>
+
 
             {/* Order details and status update button */}
             <View style={styles.orderActionContainer}>
@@ -190,35 +184,6 @@ const styles = StyleSheet.create({
         marginTop: 40,
         backgroundColor: '#fff'
     },
-    contentContainer: {
-        flex: 1,
-        marginTop: 60, // Adjust for the height of the Header
-        paddingHorizontal: 16,
-    },
-    orderDetailContainer: {
-        padding: 16,
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        margin: 16
-    },
-    restaurantImage: {
-        width: '100%',
-        height: 200,
-        borderRadius: 10,
-        marginBottom: 16,
-    },
-    restaurantName: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        textAlign: 'center'
-    },
-    orderInfo: {
-        fontSize: 16,
-        marginTop: 10
-    },
     orderActionContainer: {
         padding: 16,
         alignItems: 'center'
@@ -240,17 +205,55 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold'
     },
-    // New styles for the "Show in Google Maps" button
-    mapButton: {
-        backgroundColor: '#4285F4',
-        padding: 10,
-        borderRadius: 10,
-        marginTop: 10,
-        alignItems: 'center',
+    contentContainer: {
+        padding: 20,
+        marginTop: 50,
     },
-    mapButtonText: {
-        color: '#FFF',
+    orderDetailContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        elevation: 3,
+    },
+    restaurantImage: {
+        width: '100%',
+        height: 150,
+        borderRadius: 10,
+        marginBottom: 15,
+    },
+    restaurantName: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    section: {
+        marginBottom: 15,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        marginBottom: 5,
+    },
+    orderInfo: {
         fontSize: 16,
+        marginVertical: 2,
+    },
+    boldText: {
         fontWeight: 'bold',
     },
+    inlineContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    emojiButton: {
+        fontSize: 18,
+        marginLeft: 5,
+    },
+
+
+
 });
