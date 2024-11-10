@@ -104,8 +104,19 @@ export default function OrderDetailScreen() {
     };
 
     const openInGoogleMaps = () => {
-        // Access either restaurant or delivery data based on order status
-        const locationData = orderStatus === 'READY_FOR_DELIVERY' ? orderData.restaurant : orderData.delivery;
+        // Parse the latitude, longitude, and address based on the order status
+        const locationData = orderStatus === 'READY_FOR_DELIVERY'
+            ? {
+                latitude: orderData.restaurantLatitude,
+                longitude: orderData.restaurantLongitude,
+                address: orderData.restaurantAddress
+            }
+            : {
+                latitude: orderData.deliveryLatitude,
+                longitude: orderData.deliveryLongitude,
+                address: orderData.deliveryAddress
+            };
+
         const { latitude, longitude, address } = locationData;
 
         // Construct the Google Maps URL for navigation from the current location to the destination
@@ -125,25 +136,25 @@ export default function OrderDetailScreen() {
             <View style={styles.contentContainer}>
                 <View style={styles.orderDetailContainer}>
                     {/* Restaurant Image */}
-                    <Image source={{ uri: orderData.restaurant.imgUrl }} style={styles.restaurantImage} />
-                    <Text style={styles.restaurantName}>{orderData.restaurant.name}</Text>
+                    <Image source={{ uri: orderData.imgUrl }} style={styles.restaurantImage} />
+                    <Text style={styles.restaurantName}>{orderData.restaurantName}</Text>
                     <Text style={styles.orderInfo}>Order ID: {orderData.groupFoodOrderId}</Text>
                     <Text style={styles.orderInfo}>Order Time: {new Date(orderData.orderTime).toLocaleString()}</Text>
-                    <Text style={styles.orderInfo}>Pickup Location: {orderData.restaurant.area}</Text>
-                    <Text style={styles.orderInfo}>Delivery Location: {orderData.delivery.location}</Text>
+                    <Text style={styles.orderInfo}>Pickup Location: {orderData.location}</Text>
+                    <Text style={styles.orderInfo}>Delivery Location: {orderData.deliveryLocation}</Text>
 
                     {/* Address Details */}
                     <Text style={styles.orderInfo}>
-                        {orderStatus === 'READY_FOR_DELIVERY' ? "Pickup Address: " + orderData.restaurant.address : "Delivery Address: " + orderData.delivery.address}
+                        {orderStatus === 'READY_FOR_DELIVERY' ? "Pickup Address: " + orderData.restaurantAddress : "Delivery Address: " + orderData.deliveryAddress}
                     </Text>
                     <Text style={styles.orderInfo}>
-                        {orderStatus === 'READY_FOR_DELIVERY' ? "Pickup Latitude: " + orderData.restaurant.latitude : "Delivery Latitude: " + orderData.delivery.latitude}
+                        {orderStatus === 'READY_FOR_DELIVERY' ? "Pickup Latitude: " + orderData.restaurantLatitude : "Delivery Latitude: " + orderData.deliveryLatitude}
                     </Text>
                     <Text style={styles.orderInfo}>
-                        {orderStatus === 'READY_FOR_DELIVERY' ? "Pickup Longitude: " + orderData.restaurant.longitude : "Delivery Longitude: " + orderData.delivery.longitude}
+                        {orderStatus === 'READY_FOR_DELIVERY' ? "Pickup Longitude: " + orderData.restaurantLongitude : "Delivery Longitude: " + orderData.deliveryLongitude}
                     </Text>
 
-                    <Text style={styles.orderInfo}>Rating: {orderData.restaurant.rating}</Text>
+                    <Text style={styles.orderInfo}>Rating: {orderData.rating}</Text>
                     <Text style={styles.orderInfo}>Status: {orderStatus}</Text>
 
                     {/* Button to open Google Maps */}
