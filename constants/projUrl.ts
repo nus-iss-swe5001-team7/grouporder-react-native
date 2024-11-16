@@ -15,7 +15,7 @@ export const getProjUrl = async (): Promise<string> => {
         // projUrl = "http://192.168.50.148:8765";
     } else if (projEnv === 'production') {
         // projUrl = "http://group-order-lb-621478777.ap-southeast-1.elb.amazonaws.com";
-        projUrl = "https://d20bde94kgtbik.cloudfront.net";
+        projUrl = "https://d1tdd75mfyl36s.cloudfront.net";
     }
 
     return projUrl;
