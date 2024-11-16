@@ -2,7 +2,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export let projEnv = 'development'; // Default environment
+export let projEnv = 'production'; // Default environment
 export let projUrl: string = '';
 
 export const getProjUrl = async (): Promise<string> => {
