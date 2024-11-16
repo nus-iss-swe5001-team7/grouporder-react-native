@@ -21,7 +21,12 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.nus.team7.groupfoodorder"
+      "package": "com.nus.team7.groupfoodorder",
+      "usesCleartextTraffic": true,
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "INTERNET"
+      ]
     },
     "web": {
       "bundler": "metro",
