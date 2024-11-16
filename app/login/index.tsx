@@ -117,9 +117,9 @@ export default function LoginScreen() {
                         setError('Login endpoint not found. Please contact support or try again later.');
                     }
                 } else if (response.status === 500) {
-                    setError('Internal server error. Please try again later.');
+                    setError('Internal server error. Please try again later or use Mock Server in case PROD env shutdown.');
                 } else {
-                    setError(response.status + 'Login failed. Please try again.');
+                    setError(response.status + 'Login failed. Please try again or use Mock Server in case PROD env shutdown');
                 }
             }
         } catch (error) {
